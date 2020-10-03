@@ -47,13 +47,18 @@ async function execute (message, serverQueue) {
     const permissions = voiceChannel.permissionsFor(message.client.user);
     if (!permissions.has("CONNECT") || !permissions.has("SPEAK")) {
         return message.channel.send(
-            "I need the permissions to join and speak in your voice channel!"
+            "I'm too weak. (Missing CONNECT and SPEAK permissions)"
         );
     }
-
-    const songInfo = await ytdl.getInfo(args[1]).catch(error => {
-        console.error(error.message)
-    })
+    let songInfo
+    if ((args[1].includes('youtube.com') || args[1].includes('youtu.be')) && args[1].includes('watch?v=')) {
+        songInfo = await ytdl.getInfo(args[1]).catch(error => {
+            console.error(error.message)
+        })
+    }
+    if (!songInfo) {
+        return message.channel.send('I\'ve failed you. I couldn\'t get any song info. :cry:')
+    }
     const song = {
         title: songInfo.videoDetails.title,
         url: songInfo.videoDetails.video_url
@@ -84,17 +89,17 @@ async function execute (message, serverQueue) {
         }
     } else {
         serverQueue.songs.push(song);
-        return message.channel.send(`${song.title} has been added to the queue!`);
+        return message.channel.send(`Alright, i've **${song.title}** to the queue.`);
     }
 }
 
 function skip (message, serverQueue) {
     if (!message.member.voice.channel)
         return message.channel.send(
-            "You have to be in a voice channel to stop the music!"
+            "You have to be in a voice channel to skip the music!"
         );
     if (!serverQueue)
-        return message.channel.send("There is no song that I could skip!");
+        return message.channel.send("I've nothing to skip.");
     serverQueue.connection.dispatcher.end();
 }
 
@@ -123,5 +128,5 @@ function play (guild, song) {
         })
         .on("error", error => console.error(error));
     dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
-    serverQueue.textChannel.send(`Start playing: **${song.title}**`);
+    serverQueue.textChannel.send(`I'll play **${song.title}** now.`);
 }
