@@ -26,13 +26,13 @@ client.on('message', async message => {
     if (message.content.startsWith(`${config.prefix}play`)) {
         execute(message, serverQueue)
     } else if (message.content.startsWith(`${config.prefix}skip`)) {
-        skip(message, serverQueue);
-        return;
+        skip(message, serverQueue)
+        return
     } else if (message.content.startsWith(`${config.prefix}stop`)) {
-        stop(message, serverQueue);
-        return;
+        stop(message, serverQueue)
+        return
     } else {
-        message.channel.send('I have no idea what you are asking me to do.');
+        message.channel.send('I have no idea what you are asking me to do.')
     }
 })
 
@@ -72,24 +72,24 @@ async function execute (message, serverQueue) {
             songs: [],
             volume: 5,
             playing: true
-        };
+        }
 
-        queue.set(message.guild.id, queueContruct);
+        queue.set(message.guild.id, queueContruct)
 
-        queueContruct.songs.push(song);
+        queueContruct.songs.push(song)
 
         try {
-            var connection = await voiceChannel.join();
-            queueContruct.connection = connection;
-            play(message.guild, queueContruct.songs[0]);
+            var connection = await voiceChannel.join()
+            queueContruct.connection = connection
+            play(message.guild, queueContruct.songs[0])
         } catch (err) {
-            console.log(err);
-            queue.delete(message.guild.id);
-            return message.channel.send(err);
+            console.log(err)
+            queue.delete(message.guild.id)
+            return message.channel.send(err)
         }
     } else {
-        serverQueue.songs.push(song);
-        return message.channel.send(`Alright, i've **${song.title}** to the queue.`);
+        serverQueue.songs.push(song)
+        return message.channel.send(`Alright, i've **${song.title}** to the queue.`)
     }
 }
 
@@ -99,8 +99,8 @@ function skip (message, serverQueue) {
             "You have to be in a voice channel to skip the music!"
         );
     if (!serverQueue)
-        return message.channel.send("I've nothing to skip.");
-    serverQueue.connection.dispatcher.end();
+        return message.channel.send("I've nothing to skip.")
+    serverQueue.connection.dispatcher.end()
 }
 
 function stop (message, serverQueue) {
@@ -109,24 +109,24 @@ function stop (message, serverQueue) {
             "You have to be in a voice channel to stop the music!"
         );
     serverQueue.songs = [];
-    serverQueue.connection.dispatcher.end();
+    serverQueue.connection.dispatcher.end()
 }
 
 function play (guild, song) {
-    const serverQueue = queue.get(guild.id);
+    const serverQueue = queue.get(guild.id)
     if (!song) {
-        serverQueue.voiceChannel.leave();
-        queue.delete(guild.id);
-        return;
+        serverQueue.voiceChannel.leave()
+        queue.delete(guild.id)
+        return
     }
 
     const dispatcher = serverQueue.connection
         .play(ytdl(song.url, config.ytdl))
         .on("finish", () => {
-            serverQueue.songs.shift();
-            play(guild, serverQueue.songs[0]);
+            serverQueue.songs.shift()
+            play(guild, serverQueue.songs[0])
         })
-        .on("error", error => console.error(error));
-    dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
-    serverQueue.textChannel.send(`I'll play **${song.title}** now.`);
+        .on("error", error => console.error(error))
+    dispatcher.setVolumeLogarithmic(serverQueue.volume / 5)
+    serverQueue.textChannel.send(`I'll play **${song.title}** now.`)
 }
